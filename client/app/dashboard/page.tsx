@@ -82,7 +82,7 @@ export default function UserDashboard() {
             }));
 
             console.log("Sending request with token:", token ? "Token present" : "MISSING");
-            const response = await fetch("http://localhost:5171/api/chat/oracle", {
+            const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/chat/oracle`, {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",
