@@ -21,19 +21,12 @@ import RoadmapVisualizer from "@/components/RoadmapVisualizer";
 
 export default function UserDashboard() {
     const [view, setView] = useState<"chat" | "roadmap">("chat");
+    const [user, setUser] = useState<any>(null);
     const [messages, setMessages] = useState([
         {
             role: "oracle",
-            text: "Diagnostics initialized. I am the Pathfinder Oracle. To map your career path, I need to understand the intersection of your physical aptitudes and technical logic.",
-        },
-        {
-            role: "oracle",
-            text: "Question 01: When faced with a complex problem, do you prefer to resolve it by manipulating physical components (hardware/tools) or by restructuring logical systems (software/data)?",
-        },
-        {
-            role: "user",
-            text: "I prefer logical systems, but I enjoy seeing those systems manifest in the physical world, like robotics or automated infrastructure.",
-        },
+            text: "Welcome to Pathfinder. I am your career oracle. How can I help you navigate your path today?",
+        }
     ]);
     const [input, setInput] = useState("");
     const [isSidebarOpen, setIsSidebarOpen] = useState(false);
@@ -41,6 +34,14 @@ export default function UserDashboard() {
     const scrollRef = useRef<HTMLDivElement>(null);
     const supabase = createClient();
     const router = useRouter();
+
+    useEffect(() => {
+        const getUser = async () => {
+            const { data: { user } } = await supabase.auth.getUser();
+            setUser(user);
+        };
+        getUser();
+    }, []);
 
     useEffect(() => {
         if (scrollRef.current) {
@@ -68,13 +69,7 @@ export default function UserDashboard() {
             const token = session?.access_token;
 
             if (token) {
-                try {
-                    const header = JSON.parse(atob(token.split('.')[0]));
-                    console.log("Token Header (KID):", header.kid);
-                    console.log("Token starts with:", token.substring(0, 10) + "...");
-                } catch (e) {
-                    console.warn("Token header decode skipped:", e);
-                }
+                // Token handling if needed internally
             }
 
             const chatHistory = messages.map(msg => ({
@@ -82,7 +77,7 @@ export default function UserDashboard() {
                 content: msg.text
             }));
 
-            console.log("Sending request with token:", token ? "Token present" : "MISSING");
+            // console.log("Sending request with token:", token ? "Token present" : "MISSING");
             const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/chat/oracle`, {
                 method: "POST",
                 headers: {
@@ -95,7 +90,7 @@ export default function UserDashboard() {
                 })
             });
 
-            console.log("Response Status:", response.status);
+            // console.log("Response Status:", response.status);
             if (!response.ok) {
                 const errorText = await response.text();
                 console.error("Backend Error Response:", errorText);
@@ -172,11 +167,11 @@ export default function UserDashboard() {
                 <div className="p-4 border-t border-brand-card bg-brand-dark/50">
                     <div className="flex items-center gap-3 px-2 py-2">
                         <div className="w-8 h-8 rounded-sm bg-brand-bronze flex items-center justify-center text-white font-bold text-xs uppercase">
-                            MB
+                            {user?.email?.[0]?.toUpperCase() || "U"}
                         </div>
                         <div className="flex-1 min-w-0">
-                            <p className="text-xs font-bold text-white truncate">Musibau Bamidele</p>
-                            <p className="text-[10px] text-slate-500 truncate">System Lead</p>
+                            <p className="text-xs font-bold text-white truncate">{user?.user_metadata?.full_name || user?.email || "User"}</p>
+                            <p className="text-[10px] text-slate-500 truncate">Explorer</p>
                         </div>
                         <button onClick={handleLogout} className="text-slate-500 hover:text-white transition">
                             <LogOut size={14} />
